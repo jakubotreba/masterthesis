@@ -1,0 +1,221 @@
+# run the pipeline
+rule all:
+    input:
+        "results/output_tnbc1/infercnv/infercnv.observations.txt",
+        "results/output_snu601/infercnv/infercnv.observations.txt",
+        "results/output_tnbc1/scevan/tnbc1_subclone1_CN.seg",
+        "results/output_snu601/scevan/snu601_subclone1_CN.seg",
+        "results/output_tnbc1/copykat/tnbc1_copykat_CNA_results.txt",
+        "results/output_snu601/copykat/snu601_copykat_CNA_results.txt",
+        "results/output_tnbc1/xclone/data/combined_final.h5ad",
+        "results/output_snu601/xclone/data/combined_final.h5ad"
+
+# run Infercnv
+rule run_infercnv_tnbc1:
+    input:
+        matrix = "../tnbc1_data/GSM4476486_combined_UMIcount_CellTypes_TNBC1.txt",
+        annot = "../tnbc1_data/TNBC1_inferncv_annotation.txt",
+        gene_pos = "../tnbc1_data/hg38_gencode_v27.txt"
+    output:
+        cnv_file = "results/output_tnbc1/infercnv/infercnv.observations.txt"
+        #states_file = "results/output_tnbc1/infercnv/infercnv.20_HMM_predHMMi6.hmm_mode-samples.Pnorm_0.5.repr_intensities.observations.txt"
+    log:
+        "logs/infercnv_tnbc1.log"
+    benchmark:
+        "benchmarks/infercnv_tnbc1_benchmark.txt"
+    threads: 1
+    resources:
+        mem_mb = 32000
+    params:
+        time = "24:00:00"
+    script:
+        "infercnv_run_tnbc1.R"
+
+rule run_infercnv_snu601:
+    input:
+        matrix = "../snu601_data/SNU601_matrix_.txt",
+        annot = "../snu601_data/SNU601_annotation.txt",
+        gene_pos = "../tnbc1_data/hg38_gencode_v27.txt"
+    output:
+        cnv_file = "results/output_snu601/infercnv/infercnv.observations.txt"
+        #states_file = "results/output_snu601/infercnv/infercnv.20_HMM_predHMMi6.hmm_mode-samples.Pnorm_0.5.repr_intensities.observations.txt"
+    log:
+        "logs/infercnv_snu601.log"
+    benchmark:
+        "benchmarks/infercnv_snu601_benchmark.txt"
+    threads: 1
+    resources:
+        mem_mb = 32000
+    params:
+        time = "24:00:00"
+    script:
+        "infercnv_run_snu601.R"
+
+# run SCEVAN
+rule run_scevan_tnbc1:
+    input: 
+        matrix = "../tnbc1_data/GSM4476486_combined_UMIcount_CellTypes_TNBC1.txt",
+        annot = "../tnbc1_data/TNBC1_scevan_annotation.txt"
+    output:
+        cnv_file = "results/output_tnbc1/scevan/tnbc1_subclone1_CN.seg",
+        pred_file = "results/output_tnbc1/scevan/tnbc1_scevan_prediction.txt",
+        expr = "results/output_tnbc1/scevan/tnbc1_CNAmtxSubclones.RData",
+        gene_pos = "results/output_tnbc1/scevan/tnbc1_count_mtx_annot.RData"
+    log:
+        "logs/scevan_tnbc1.log"
+    benchmark:
+        "benchmarks/scevan_tnbc1_benchmark.txt"
+    threads: 1
+    resources:
+        mem_mb = 32000
+    params:
+        time = "24:00:00"
+    script:
+        "scevan_run_tnbc1.R"
+
+rule run_scevan_snu601:
+    input: 
+        matrix = "../snu601_data/SNU601_matrix_.txt",
+    output:
+        cnv_file = "results/output_snu601/scevan/snu601_subclone1_CN.seg",
+        pred_file = "results/output_snu601/scevan/snu601_scevan_prediction.txt",
+        expr = "results/output_snu601/scevan/snu601_CNAmtxSubclones.RData",
+        gene_pos = "results/output_snu601/scevan/snu601_count_mtx_annot.RData"
+    log:
+        "logs/scevan_snu601.log"
+    benchmark:
+        "benchmarks/scevan_snu601_benchmark.txt"
+    threads: 1
+    resources:
+        mem_mb = 32000
+    params:
+        time = "24:00:00",
+        find_clones = "TRUE"
+    script:
+        "scevan_run_snu601.R"
+
+# run copyKAT
+rule run_copykat_tnbc1:
+    input:
+        matrix = "../tnbc1_data/GSM4476486_combined_UMIcount_CellTypes_TNBC1.txt",
+        annot = "../tnbc1_data/TNBC1_copykat_annotation.txt",
+    output: 
+        cnv_file = "results/output_tnbc1/copykat/tnbc1_copykat_CNA_results.txt",
+        pred_file = "results/output_tnbc1/copykat/tnbc1_copykat_prediction.txt",
+        cnv_per_cell = "results/output_tnbc1/copykat/tnbc1_copykat_CNA_raw_results_gene_by_cell.txt"
+    log:
+        "logs/copykat_tnbc1.log"
+    benchmark:
+        "benchmarks/copykat_tnbc1_benchmark.txt"
+    threads: 1
+    resources:
+        mem_mb = 32000
+    params:
+        time = "24:00:00"
+    script:
+        "copykat_run_tnbc1.R"
+
+rule run_copykat_snu601:
+    input:
+        matrix = "../snu601_data/SNU601_matrix_.txt"  # Fixed file extension
+    output: 
+        cnv_file = "results/output_snu601/copykat/snu601_copykat_CNA_results.txt",
+        pred_file = "results/output_snu601/copykat/snu601_copykat_prediction.txt",
+        cnv_per_cell = "results/output_snu601/copykat/snu601_copykat_CNA_raw_results_gene_by_cell.txt"
+    log:
+        "logs/copykat_snu601.log"
+    benchmark:
+        "benchmarks/copykat_snu601_benchmark.txt"
+    threads: 1
+    resources:
+        mem_mb = 32000
+    params:
+        time = "24:00:00"
+    script:
+        "copykat_run_snu601.R"
+
+# run xclone
+rule run_xclone_tnbc1:
+    input:
+        rdr_file = "../tnbc1_data/tnbc1_matrix.mtx",
+        mtx_barcodes_file = "../tnbc1_data/tnbc1_barcodes.tsv",
+        regions_anno_file = "../tnbc1_data/tnbc1_features.tsv",
+        gene_expr_matrix = "../tnbc1_data/GSM4476486_combined_UMIcount_CellTypes_TNBC1.txt",
+        AD_mtrix = "../tnbc1_data/tnbc1_AD.mtx",
+        DP_matrix = "../tnbc1_data/tnbc1_DP.mtx"
+    output:
+        RDR_bulk_adata = "results/output_tnbc1/xclone/data/RDR_bulk_adata.h5ad",
+        RDR_base_adata = "results/output_tnbc1/xclone/data/RDR_base_adata.h5ad",
+        RDR_KNN_HMM_post = "results/output_tnbc1/xclone/data/RDR_adata_KNN_HMM_post.h5ad",
+        combined_final = "results/output_tnbc1/xclone/data/combined_final.h5ad",
+        combine_corrected = "results/output_tnbc1/xclone/data/combine_adata_corrected.h5ad",  # Fixed typo
+        BAF_KNN_HMM_post = "results/output_tnbc1/xclone/data/BAF_merge_Xdata_KNN_HMM_post.h5ad",
+        BAF_mrge_base = "results/output_tnbc1/xclone/data/BAF_merge_base_Xdata.h5ad",
+        BAF_base_Xdata = "results/output_tnbc1/xclone/data/BAF_base_Xdata.h5ad",
+        combine_plot = "results/output_tnbc1/xclone/plot/TNBC1_combine_base.png"
+    log:
+        "logs/xclone_tnbc1.log"
+    benchmark:
+        "benchmarks/xclone_tnbc1_benchmark.txt"
+    threads: 1
+    resources:
+        mem_mb = 32000
+    params:
+        time = "24:00:00"
+    script:
+        "xclone_run_tnbc1.py"
+
+rule run_xclone_snu601:
+    input:
+        rdr_file = "../snu601_data/snu601_matrix.mtx",
+        mtx_barcodes_file = "../snu601_data/snu601_barcodes.tsv",
+        regions_anno_file = "../snu601_data/snu601_features.tsv",
+        gene_expr_matrix = "../snu601_data/SNU601_matrix_.txt",
+        AD_mtrix = "../snu601_data/AD_snu601.mtx",
+        DP_matrix = "../snu601_data/DP_snu601.mtx"
+    output:
+        RDR_bulk_adata = "results/output_snu601/xclone/data/RDR_bulk_adata.h5ad",
+        RDR_base_adata = "results/output_snu601/xclone/data/RDR_base_adata.h5ad",
+        RDR_KNN_HMM_post = "results/output_snu601/xclone/data/RDR_adata_KNN_HMM_post.h5ad",
+        combined_final = "results/output_snu601/xclone/data/combined_final.h5ad",
+        combine_corrected = "results/output_snu601/xclone/data/combine_adata_corrected.h5ad",
+        BAF_KNN_HMM_post = "results/output_snu601/xclone/data/BAF_merge_Xdata_KNN_HMM_post.h5ad",
+        BAF_mrge_base = "results/output_snu601/xclone/data/BAF_merge_base_Xdata.h5ad",
+        BAF_base_Xdata = "results/output_snu601/xclone/data/BAF_base_Xdata.h5ad",
+        combine_plot = "results/output_snu601/xclone/plot/SNU601_combine_base.png"
+    log:
+        "logs/xclone_snu601.log"
+    benchmark:
+        "benchmarks/xclone_snu601_benchmark.txt"
+    threads: 1
+	resources:
+		mem_mb = 32000
+	params:
+		time = "24:00:00"
+	script:
+		"xclone_run_snu601.py"
+
+
+        
+        
+
+
+
+
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
